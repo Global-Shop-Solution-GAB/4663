@@ -1,0 +1,174 @@
+Program.Sub.ScreenSU.Start
+gui.frmPulse..create
+gui.frmPulse..caption("Metalform Pulse Report")
+gui.frmPulse..size(3240,2295)
+gui.frmPulse..minx(0)
+gui.frmPulse..miny(0)
+gui.frmPulse..position(0,0)
+gui.frmPulse..event(unload,frmpulse_unload)
+gui.frmPulse..alwaysontop(False)
+gui.frmPulse..fontname("Arial")
+gui.frmPulse..fontsize(8)
+gui.frmPulse..forecolor(0)
+gui.frmPulse..fontstyle(,,,,)
+gui.frmPulse..BackColor(-2147483633)
+gui.frmPulse..controlbox(True)
+gui.frmPulse..maxbutton(True)
+gui.frmPulse..minbutton(True)
+gui.frmPulse..mousepointer(0)
+gui.frmPulse..moveable(True)
+gui.frmPulse..sizeable(True)
+gui.frmPulse..ShowInTaskBar(True)
+gui.frmPulse..titlebar(True)
+gui.frmPulse.dtpCutoff.create(datepicker)
+gui.frmPulse.dtpCutoff.visible(True)
+gui.frmPulse.dtpCutoff.size(1935,285)
+gui.frmPulse.dtpCutoff.zorder(0)
+gui.frmPulse.dtpCutoff.position(200,500)
+gui.frmPulse.dtpCutoff.enabled(True)
+gui.frmPulse.dtpCutoff.checkbox(False)
+gui.frmPulse.dtpCutoff.defaultvalue("")
+gui.frmPulse.dtpCutoff.controlgroup(0)
+gui.frmPulse.cmdProcess.create(button)
+gui.frmPulse.cmdProcess.caption("Run Report")
+gui.frmPulse.cmdProcess.visible(True)
+gui.frmPulse.cmdProcess.size(1305,375)
+gui.frmPulse.cmdProcess.zorder(0)
+gui.frmPulse.cmdProcess.position(200,900)
+gui.frmPulse.cmdProcess.enabled(True)
+gui.frmPulse.cmdProcess.fontname("Arial")
+gui.frmPulse.cmdProcess.fontsize(8)
+gui.frmPulse.cmdProcess.event(click,cmdprocess_click)
+gui.frmPulse.cmdProcess.defaultvalue("")
+gui.frmPulse.cmdProcess.controlgroup(0)
+gui.frmPulse.lbl1.create(label,"Cutoff Date",True,1935,255,1,200,200,True,0,Arial,8,-2147483633,0)
+gui.frmPulse.lbl1.defaultvalue("")
+gui.frmPulse.lbl1.controlgroup(0)
+
+
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+Gui.frmPulse..Show
+
+Program.Sub.Main.End
+
+program.sub.cmdprocess_click.start
+F.Intrinsic.UI.InvokeWaitDialog("Processing Report","Metalform Pulse Report")
+
+V.Local.scc.Declare(String)
+F.Intrinsic.String.Concat("GLOBAL_",V.Caller.CompanyCode,V.Local.scc)
+F.ODBC.CONNECTION!CONX.OpenConnection(V.Local.scc,"Master","master")
+F.ODBC.Connection!CONX.Execute("DELETE FROM GCG_8837_PULSE_SALE")
+
+V.Local.dDate.Declare(Date)
+V.Local.dDate.Set(V.Screen.frmPulse!dtpCutoff.Value)
+
+V.Local.ssql.Declare(String)
+V.Local.ssql.set("SELECT DISTINCT POST_DATE FROM GCG_8837_PULSE_CHART")
+V.Local.dPostDate.Declare(Date)
+f.ODBC.Connection!CONx.executeandreturn(v.Local.ssql,v.Local.dPostDate)
+V.Local.ssql.set("SELECT PRODUCT_LINE,PRODUCT_LINE_NAME,SALES_ACCOUNT,TARGET FROM GCG_8837_PULSE_CHART WHERE SALES_ACCOUNT<>'' order by PRODUCT_LINE_NAME")
+
+
+V.Local.sAcct.Declare(String)
+V.Local.sCategory.Declare(String)
+V.Local.lPeriod.Declare(Long)
+V.Local.speriod.Declare(String)
+V.Local.lYear.Declare(Long)
+V.Local.fBudget.Declare(Float)
+V.Local.fConfirmed.Declare(Float)
+V.Local.fret.Declare(Float)
+V.Local.fShipments.Declare(Float)
+V.Local.fInvoices.Declare(Float)
+V.Local.fShipInvoices.Declare(Float)
+V.Local.fYTDAmt.Declare(Float)
+V.Local.fYTDBudget.Declare(Float)
+V.Local.fGMPercent.Declare(Float)
+V.Local.fTarget.Declare(float)
+v.Local.dBegDateofMth.Declare(Date)
+v.Local.dEndDateofPrMth.Declare(Date)
+V.Local.i.Declare(Long)
+
+F.ODBC.Connection!CONX.OpenLocalRecordsetRW("rs",V.Local.ssql)
+F.Intrinsic.Control.DoUntil(V.ODBC.CONX!rs.EOF,=,True)
+	V.Local.sCategory.Set(V.ODBC.CONX!rs.FieldVal!PRODUCT_LINE_NAME)
+	V.Local.sAcct.Set(V.odbc.CONX!rs.FieldVal!SALES_ACCOUNT)
+
+	F.Intrinsic.String.Concat("SELECT PERIOD FROM V_GL_CALENDAR WHERE END_DATE>='",V.local.ddate.pervasivedate,"' AND BEG_DATE<='",V.local.ddate.pervasivedate,"' and period<>'13' ",V.Local.ssql)
+	F.ODBC.Connection!CONX.ExecuteAndReturn(V.Local.ssql,V.Local.lPeriod)
+
+	F.Intrinsic.String.Concat("SELECT PERIOD FROM V_GL_CALENDAR WHERE END_DATE>='",V.local.ddate.pervasivedate,"' AND BEG_DATE<='",V.local.ddate.pervasivedate,"' and period<>'13' ",V.Local.ssql)
+	F.ODBC.Connection!CONX.ExecuteAndReturn(V.Local.ssql,V.Local.sPeriod)
+
+	F.Intrinsic.String.Concat("SELECT start_year FROM V_GL_CALENDAR WHERE END_DATE>='",V.local.ddate.pervasivedate,"' AND BEG_DATE<='",V.local.ddate.pervasivedate,"' and period<>'13' ",V.Local.ssql)
+	F.ODBC.Connection!CONX.ExecuteAndReturn(V.Local.ssql,V.Local.lYear)
+
+	F.Intrinsic.String.concat("select BALANCE_",V.local.lperiod,"*-1 from V_GL_BUDGET WHERE GL_ACCOUNT='",V.odbc.conx!rs.fieldval!sales_account,"' AND FISCAL_YEAR='",V.local.lyear,"'",V.Local.ssql)
+	F.ODBC.Connection!CONX.ExecuteAndReturn(V.Local.ssql,V.Local.fBudget)
+	
+	'F.Intrinsic.String.Concat("SELECT ifnull(sum(extension),0) FROM V_ORDER_LINES WHERE DATE_ITEM_PROM<='",V.local.ddate.PERVASIVEDATE,"'  AND PRODUCT_LINE='",V.odbc.conx!rs.FIELDVAL!PRODUCT_LINE,"' group by Product_line","",V.Local.ssql)
+	F.Intrinsic.String.Concat("SELECT ifnull(sum((QTY_BO*PRICE_DISC_ORD)),0) FROM V_ORDER_LINES WHERE DATE_ITEM_PROM<='",V.local.ddate.pervasivedate,"' AND PRODUCT_LINE='",V.odbc.conx!rs.FIELDVAL!PRODUCT_LINE,"' and LINE_TYPE<>'P' AND QTY_BO<>0","",V.Local.ssql)
+	F.ODBC.Connection!CONX.ExecuteAndReturn(V.Local.ssql,V.Local.fConfirmed)
+
+	F.Intrinsic.String.Concat("select ifnull(SUM(EXTENSION),0) from V_SHIPMENT_LINES WHERE PRODUCT_LINE='",V.odbc.conx!rs.fieldval!PRODUCT_LINE,"' AND DATE_SHIP<='",V.local.ddate.pervasivedate,"'",V.Local.ssql)
+	F.ODBC.Connection!CONX.ExecuteAndReturn(V.Local.ssql,V.Local.fShipments)
+
+	F.Intrinsic.String.Concat("SELECT ifnull(sum(amount)*-1,0)  FROM V_GL_DETAIL WHERE POST_DATE<='",V.local.ddate.pervasivedate,"' AND PERIOD='",V.local.sPeriod,"' AND GL_ACCOUNT='",V.odbc.conx!rs.fieldval!sales_account,"'",V.Local.ssql)
+	F.ODBC.Connection!CONX.ExecuteAndReturn(V.Local.ssql,V.Local.fInvoices)
+
+	F.Intrinsic.Math.Add(V.Local.fInvoices,V.Local.fShipments,V.Local.fShipInvoices)
+
+	'Subtract one period out per Campbell.
+	f.Intrinsic.Date.BeginningOfMonth(v.Local.dDate,v.Local.dBegDateofMth)
+	f.Intrinsic.Date.DateAdd("D",-1,v.Local.dBegDateofMth,v.Local.dEndDateofPrMth)
+	F.Intrinsic.String.Concat("select ifnull(SUM(AMOUNT)*-1,0) from v_GL_DETAIL WHERE POST_DATE<='",V.local.dEndDateofPrMth.pervasivedate,"' AND post_date>='",V.local.dPostDate.PervasiveDate,"' AND GL_ACCOUNT='",V.odbc.conx!rs.fieldval!sales_account,"'",V.Local.ssql)
+	F.ODBC.Connection!CONX.ExecuteAndReturn(V.Local.ssql,V.Local.fYTDAmt)
+	'Subtract one per Campbell, to show the prior month.  
+	f.intrinsic.math.sub(v.local.lperiod,1,v.local.lperiod)
+	F.Intrinsic.Control.For(V.Local.i,1,V.Local.lPeriod,1)
+		F.Intrinsic.String.Concat("select BALANCE_",V.local.i," from V_GL_BUDGET WHERE GL_ACCOUNT='",V.odbc.conx!rs.fieldvalTRIM!sales_account,"' AND FISCAL_YEAR='",V.local.lyear,"'",V.Local.ssql)
+		F.ODBC.Connection!CONX.ExecuteAndReturn(V.Local.ssql,V.Local.fret)
+		F.Intrinsic.Math.Add(V.Local.fYTDBudget,V.Local.fret,V.Local.fYTDBudget)
+	F.Intrinsic.Control.Next(V.Local.i)
+	F.Intrinsic.Math.Mult(V.Local.fYTDBudget,-1,V.Local.fYTDBudget)
+
+	F.Intrinsic.String.Concat("SELECT ifnull(IF(sum(EXTENSION)=0,0,IF(sum(COST*qty_shipped)=0,0,truncate(round(((sum(extension)-sum(cost*QTY_SHIPPED))/sum(extension))*100,2),6))),0) FROM V_ORDER_HIST_LINE WHERE LINE_TYPE<>'P' and PRODUCT_LINE='",V.odbc.conx!rs.FIELDVAL!PRODUCT_LINE,"' AND LEFT(ORDER_LINE,1)<>'8' and DATE_ORDER<='",V.Local.dDate.PervasiveDate,"'",V.Local.ssql)
+	F.ODBC.Connection!CONX.ExecuteAndReturn(V.Local.ssql,V.Local.fGMPercent)
+
+	V.Local.fTarget.Set(V.ODBC.CONX!rs.FieldVal!TARGET)
+	V.Local.ssql.Set("INSERT INTO GCG_8837_PULSE_SALE (CATEGORY,MTH_BUDGET,MTH_CONFIRMED,MTH_SHIPPED,MTH_TOTAL,YTD_BUDGET,YTD_ACTUAL,YTD_VARIANCE,GP_ACTUAL,DATE_RUN,GP_TARGET) VALUES ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}')")
+	F.Intrinsic.String.Build(V.Local.ssql,V.Local.sCategory.Trim,V.Local.fBudget,V.Local.fConfirmed,V.Local.fShipInvoices,0,V.Local.fYTDBudget,V.Local.fYTDAmt,0,V.Local.fGMPercent,V.local.ddate.pervasivedate,v.Local.fTarget,v.Local.ssql)
+	F.ODBC.Connection!CONX.Execute(V.Local.ssql)
+	V.Local.fBudget.Set(0)
+	V.Local.fYTDBudget.Set(0)
+	V.Local.fGMPercent.Set(0)
+	
+	F.ODBC.CONX!rs.MoveNext
+F.Intrinsic.Control.Loop
+F.ODBC.Connection!CONX.Close
+
+V.Local.lbiid.Declare(Long)
+F.Global.BI.GetIDFromName("GCG_8837_PULSE_SALE.rpt",V.Local.lBIID)
+V.Local.sBIID.Declare(String)
+F.Intrinsic.String.LPad(V.Local.lBIID,"0",6,V.Local.sBIID)
+F.Global.BI.PrintReport(V.Local.sBIID,0,"","",false)
+
+F.Intrinsic.Control.End
+
+program.sub.cmdprocess_click.End
+
+program.sub.frmpulse_unload.start
+
+F.Intrinsic.Control.End
+
+program.sub.frmpulse_unload.End
+
+Program.Sub.Comments.Start
+${$0$}$GCG_8837_Pulse_Report$}$SUPERVSR$}$14/01/2017$}$False
+Program.Sub.Comments.End
+
